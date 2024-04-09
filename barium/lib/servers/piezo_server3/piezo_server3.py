@@ -49,7 +49,7 @@ class piezo_wrapper(DeviceWrapper):
     @inlineCallbacks
     def write(self, code):
         """Write a data value to the heat switch."""
-        yield self.packet().write(code).send()
+        yield self.packet().write(str(code)).send()
 
     @inlineCallbacks
     def query(self, code):

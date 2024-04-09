@@ -7,6 +7,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import sys
 from common.lib.clients.qtui.q_custom_text_changing_button import TextChangingButton 
+from artiq_config import config
 
 class TextChangingButton(TextChangingButton):
     def __init__(self, button_text=None, parent=None):
@@ -114,7 +115,10 @@ class DDSGui(QFrame):
         title.setAlignment(Qt.AlignCenter)
         self.channels = []
         for i in range(12):
-            self.channels.append(DDS_channel('ch ' + str(i)))
+            if i in config.DDS_dict.keys():
+                self.channels.append(DDS_channel(config.DDS_dict[i][0]))                    
+            else:
+                self.channels.append(DDS_channel('ch ' + str(i)))
             layout.addWidget(self.channels[i], i+1, 0)
 
         layout.addWidget(title,0,0)

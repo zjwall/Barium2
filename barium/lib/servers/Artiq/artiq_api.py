@@ -1,5 +1,8 @@
 # Copyright (C) 2022 Zach Wall
 
+from artiq.frontend.artiq_run import _build_experiment, get_argparser, DummyScheduler, DummyCCB
+from artiq.master.databases import DeviceDB, DatasetDB
+from artiq.master.worker_db import DeviceManager, DatasetManager
 
 
 from artiq.experiment import *
@@ -36,8 +39,13 @@ class ARTIQ_api(object):
     def __init__(self, ddb_filepath):
         devices = DeviceDB(ddb_filepath)
         self.ddb_filepath = ddb_filepath
-        self.device_manager = DeviceManager(devices)
+        self.device_manager = DeviceManager(devices,
+                              virtual_devices={"scheduler": DummyScheduler(),
+                                            "ccb": DummyCCB()})
         self.device_db = devices.get_device_db()
+        d = 'C:\\Users\\barium133\\Code\\barium\\lib\\servers\\Artiq\\dataset_db.pyon'
+        dataset_db = DatasetDB(d)
+        self.dataset_mgr = DatasetManager(dataset_db)
         self._getDevices()
 
     def reset(self):
@@ -45,7 +53,9 @@ class ARTIQ_api(object):
         Reestablishes a connection to artiq_master.
         """
         devices = DeviceDB(self.ddb_filepath)
-        self.device_manager = DeviceManager(devices)
+        self.device_manager = DeviceManager(devices,
+                           virtual_devices={"scheduler": DummyScheduler(),
+                                            "ccb": DummyCCB()})
         self.device_db = devices.get_device_db()
         self._getDevices()
 
@@ -68,7 +78,7 @@ class ARTIQ_api(object):
         self.dacType = None
         self.sampler = None
         self.phaser = None
-
+        self.temp_pmt_counts = []
         # assign names and devices
         for name, params in self.device_db.items():
             # only get devices with named class
@@ -401,7 +411,7 @@ class ARTIQ_api(object):
         Get the number of TTL input events for a given time, averaged over a number of trials.
         """
         try:
-            dev = self.ttlcounter_list['ttl' + str(ttlname) + '_counter']
+            dev = self.ttlcounter_list[str(ttlname) + '_counter']
         except KeyError:
             raise Exception('Invalid device name.')
 
@@ -431,4 +441,21 @@ class ARTIQ_api(object):
         """
         self.ttl_counts_array[index] = value
 
+    
+    def input_pulse_sequence(self, exp_file, keys, params):
+        """
+        Records values via rpc to minimize kernel overhead.
+        """
+        args = get_argparser().parse_args({exp_file})
+        exp_inst=_build_experiment(self.device_manager, self.dataset_mgr, args)
+        exp_inst.prepare()
+        exp_inst.build()
+        exp_inst.set_vals(keys, params)
+        exp_inst.run()
+        self.temp_pmt_counts = exp_inst.get_counts()
+        
+
+    def get_temp_counts(self):
+        return self.temp_pmt_counts
+        
     

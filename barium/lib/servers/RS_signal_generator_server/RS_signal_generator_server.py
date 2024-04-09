@@ -66,7 +66,7 @@ class RS_wrapper(DeviceWrapper):
 
     @inlineCallbacks
     def write(self, code):
-        yield self.packet().write(code).send()
+        yield self.packet().write(str(code)).send()
 
     @inlineCallbacks
     def query(self, code):

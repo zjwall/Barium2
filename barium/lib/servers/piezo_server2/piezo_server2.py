@@ -109,8 +109,16 @@ class piezo_server(DeviceServer):
             devName = '%s - %s' % (serServer, port)
             devs += [(devName, (server, port))]
         returnValue(devs)
+        
+    @setting(230, value='b')
+    def set_remote_state(self, c, value):
+        '''
+        Turn the remote mode on
+        '''
+        dev = self.selectDevice(c)
+        yield dev.write('remote.w ' + str(int(value))+ '\r\n')
 
-    @setting(100, channel = 'i', value='v[V]')
+    @setting(203, channel = 'i', value='v[V]')
     def set_voltage(self, c, channel, value):
         '''
         Sets the value of the voltage.
@@ -131,13 +139,7 @@ class piezo_server(DeviceServer):
         yield dev.write('out.w ' + str(channel) + ' ' + str(int(value))+ '\r\n')
         self.current_state[str(channel)][1] = int(value)
 
-    @setting(102, value='b')
-    def set_remote_state(self, c, value):
-        '''
-        Turn the remote mode on
-        '''
-        dev = self.selectDevice(c)
-        yield dev.write('remote.w ' + str(int(value))+ '\r\n')
+
 
 
     @setting(200, channel = 'i', returns='v')
@@ -146,6 +148,7 @@ class piezo_server(DeviceServer):
         Get the output state of the specified channel. State is unknown when
         server is first started or restarted.
         '''
+
 
         return self.current_state[str(channel)][1]
 

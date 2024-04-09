@@ -49,7 +49,7 @@ device_db = {
 
 # standalone peripherals
 
-device_db["ttl0"] = {
+device_db["PMT"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
     "class": "TTLInOut",
@@ -105,7 +105,7 @@ device_db["ttl7"] = {
     "arguments": {"channel": 0x000007},
 }
 
-device_db["ttl0_counter"] = {
+device_db["PMT_counter"] = {
     "type": "local",
     "module": "artiq.coredevice.edge_counter",
     "class": "EdgeCounter",
@@ -307,7 +307,7 @@ device_db["urukul0_cpld"] = {
     }
 }
 
-device_db["urukul0_ch0"] = {
+device_db["repump_AOM"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
@@ -319,7 +319,7 @@ device_db["urukul0_ch0"] = {
     }
 }
 
-device_db["urukul0_ch1"] = {
+device_db["cooling_AOM"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
@@ -331,7 +331,7 @@ device_db["urukul0_ch1"] = {
     }
 }
 
-device_db["urukul0_ch2"] = {
+device_db["shelving_AOM"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
@@ -343,7 +343,7 @@ device_db["urukul0_ch2"] = {
     }
 }
 
-device_db["urukul0_ch3"] = {
+device_db["deshelving_AOM"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",

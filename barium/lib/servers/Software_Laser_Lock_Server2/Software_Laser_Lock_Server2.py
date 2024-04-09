@@ -42,6 +42,7 @@ class Software_Laser_Lock_Server2(LabradServer):
     @inlineCallbacks
     def connect(self):
         from labrad.wrappers import connectAsync
+
         self.cxn = yield connectAsync(multiplexer_config.ip,
                                       name=self.name,
                                       password=self.password)
@@ -54,7 +55,6 @@ class Software_Laser_Lock_Server2(LabradServer):
         self.wm = self.cxn.multiplexerserver
         self.wm2 = self.cxn2.multiplexerserver
         self.piezo = self.trap_cxn.piezo_controller2
-
         self.reg = self.trap_cxn.registry
         self.set_up_channels()
 
@@ -83,7 +83,7 @@ class Software_Laser_Lock_Server2(LabradServer):
             if self.lasers[laser][6]:# == True and self.lasers[laser][4] != 4:
                 # Get the frequency
                 if laser =="650nm":
-                    freq = yield self.wm.get_frequency(self.lasers[laser][1]) 
+                    freq = yield self.wm.get_frequency(self.lasers[laser][1])
                 else:
                     freq = yield self.wm2.get_frequency(self.lasers[laser][1]) 
                 # Make sure we didn't get some erroneous reading and throw the lock

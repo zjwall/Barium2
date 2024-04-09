@@ -25,6 +25,7 @@ from twisted.internet.defer import returnValue, inlineCallbacks
 from labrad.support import getNodeName
 from artiq_api import ARTIQ_api
 import numpy as np
+from artiq_config import config
 
 TTLSIGNAL_ID = 828176
 DACSIGNAL_ID = 828175
@@ -47,7 +48,7 @@ class Artiq_Server(LabradServer):
         #initialize DAC required if device restarted
         yield self.api.initializeDAC()
         yield self.set_Devices()
-        #self.setup()
+        self.setup2()
 
     def set_Devices(self):
         """
@@ -72,6 +73,25 @@ class Artiq_Server(LabradServer):
             yield self.api.setTTL('ttl'+str(i),False)
         for i in range(32):
             yield self.api.setZotino(i, float(0.0))
+            
+    @inlineCallbacks
+    def setup2(self):
+        for i in range(12):
+            if i in config.DDS_dict.keys():
+                dds_name  = self.dds_list[i]
+                freq = float(config.DDS_dict[i][1])
+                amp = float(config.DDS_dict[i][2])
+                att = float(config.DDS_dict[i][3])
+                state = config.DDS_dict[i][4]
+                self.dds_params[dds_name][0] = freq
+                self.dds_params[dds_name][1] = amp
+                self.dds_params[dds_name][2] = state
+                self.dds_params[dds_name][3] = att
+                yield self.api.setDDS(dds_name, freq, amp)
+                yield self.api.setDDSatt(dds_name, att)
+                yield self.api.toggleDDS(dds_name, state)
+
+            
         
     # CORE
     @setting(21, returns='*s')
@@ -380,8 +400,8 @@ class Artiq_Server(LabradServer):
         return self.api.getDDSatt(dds_name)
 
 
-    @setting(401, ttl_name='i', time_us='i', trials='i', returns='*v')
-    def ttl_count_list(self, c, ttl_name, time_us=100, trials=10):
+    @setting(401, time_us='i', trials='i', returns='*v')
+    def ttl_count_list(self, c, time_us=100, trials=10):
         """
         Read the number of counts from a TTL in a given time and
             averages it over a number of trials.
@@ -393,16 +413,20 @@ class Artiq_Server(LabradServer):
         Returns:
                         (float) : averaged number of ttl counts
         """
-        if 'ttl'+ str(ttl_name) not in self.ttlin_list:
-            raise Exception('Error: device does not exist.')
-        # ensure we don't count for too long or too short
-        if (time_us * 1e-6 * trials > 20) or (time_us < 10):
-            raise Exception('Error: invalid total counting time.')
-        counts_list = yield self.api.counterTTL(ttl_name, time_us, trials)
+
+        counts_list = yield self.api.counterTTL('PMT', time_us, trials)
         returnValue(counts_list)
 
             
-    
+    @setting(1000, exp_file = 's', keys = '*s', params = '*v')
+    def program_pulse_sequence(self, c, exp_file, keys, params):
+        self.api.input_pulse_sequence("C:\\Users\\barium133\Code\\barium\\lib\\scripts\\artiq_sequences\\" + exp_file,keys,params)
+
+    @setting(1100, returns = '**v')
+    def get_exp_counts(self, c):
+        pmt_counts = self.api.get_temp_counts()
+        return(pmt_counts)
+ 
 if __name__ == "__main__":
     from labrad import util
     util.runServer(Artiq_Server())

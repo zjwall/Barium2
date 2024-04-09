@@ -1,10 +1,23 @@
-from PyQt4 import QtGui
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+import threading
+import sys
+import time
+import socket
+import os
+import numpy as np 
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QThread, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, QGridLayout
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 # this try and except avoids the error "RuntimeError: wrapped C/C++ object of type QWidget has been deleted"
 try:
-	from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+	from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 except:
-	from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+	from matplotlib.backends.backend_qt5agg import NavigationToolbar2QTAgg as NavigationToolbar
 
 
 from matplotlib.figure import Figure
@@ -18,15 +31,15 @@ class config_hist(object):
     ID_A = 99999
     ID_B = 99998
     #data vault comment
-    dv_data_set = ['OpticalPumping','BrightState','D32_hist',\
+    dv_data_set = ['Shelving','BrightState','D32_hist',\
                    'MicrowaveSweep_hist', 'Rabi_hist',\
                     'Ramsey_hist','metastable_prep_hist']
     #semaphore locations
     readout_threshold_dir =  ('StateReadout','state_readout_threshold')
 
-class readout_histogram(QtGui.QWidget):
+class readout_histogram(QWidget):
     def __init__(self, reactor, cxn = None, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QWidget.__init__(self, parent)
         self.reactor = reactor
         self.cxn = cxn
         self.thresholdVal = 10
@@ -39,13 +52,13 @@ class readout_histogram(QtGui.QWidget):
         self.connect_labrad()
 
     def create_layout(self):
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         plot_layout = self.create_plot_layout()
         layout.addLayout(plot_layout)
         self.setLayout(layout)
 
     def create_plot_layout(self):
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         self.fig = Figure()
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setParent(self)
@@ -112,8 +125,8 @@ class readout_histogram(QtGui.QWidget):
         self.canvas.draw()
 
     def update_fidelity(self):
-    	if self.last_fid is not None:
-    		self.axes1.lines[self.current_data_set - 1].remove()
+        if self.last_fid is not None:
+            self.axes1.lines[self.current_data_set - 1].remove()
 
         if self.last_data is not None:
             bright = numpy.where(self.last_data[:,1] >= self.thresholdVal)
@@ -131,8 +144,8 @@ class readout_histogram(QtGui.QWidget):
         try:
             server = yield self.cxn.get_server('ParameterVault')
             yield server.set_parameter(config_hist.readout_threshold_dir[0], config_hist.readout_threshold_dir[1], threshold, context = self.context)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             yield None
 
     def update_canvas_line(self, threshold):
@@ -143,7 +156,7 @@ class readout_histogram(QtGui.QWidget):
             self.thresholdLine = self.axes.axvline(threshold, ymin=0.0, ymax=100.0, linewidth=3.0, color = 'r', label = 'Threshold')
         except Exception as e:
             #drawing axvline throws an error when the plot is never shown (i.e in different tab)
-            print 'Weird singular matrix bug deep inside matplotlib'
+            print('Weird singular matrix bug deep inside matplotlib')
         self.canvas.draw()
 
     @inlineCallbacks
@@ -155,14 +168,14 @@ class readout_histogram(QtGui.QWidget):
         self.context = yield self.cxn.context()
         try:
             yield self.subscribe_data_vault()
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             self.setDisabled(True)
         try:
             yield self.subscribe_parameter_vault()
-        except Exception, e:
-            print e
-            print 'Not Initially Connected to ParameterVault', e
+        except Exception as e:
+            print(e)
+            print('Not Initially Connected to ParameterVault', e)
             self.setDisabled(True)
         yield self.cxn.add_on_connect('Data Vault', self.reinitialize_data_vault)
         yield self.cxn.add_on_connect('ParameterVault', self.reinitialize_parameter_vault)
@@ -223,7 +236,7 @@ class readout_histogram(QtGui.QWidget):
     def on_new_dataset(self, x, y):
     	# To only plot the latest histogram, the string in the added datavault param
     	# has the number of cycles for that experiment at the end
-    	if y[3][:4] == 'hist':
+        if y[3][:4] == 'hist':
             dv = yield self.cxn.get_server('Data Vault')
             ind = y[3].index('c')
             num = int(y[3][(ind+1):])
@@ -240,10 +253,10 @@ class readout_histogram(QtGui.QWidget):
         self.reactor.stop()
 
 if __name__=="__main__":
-    a = QtGui.QApplication( [] )
-    import qt4reactor
-    qt4reactor.install()
-    from twisted.internet import reactor
+    a = QApplication( sys.argv )
+    import qt5reactor
+    qt5reactor.install()
+    from twisted.internet import reactor  
     widget = readout_histogram(reactor)
     widget.show()
     reactor.run()

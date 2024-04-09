@@ -1,7 +1,7 @@
 import labrad
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from common.lib.servers.script_scanner.scan_methods import experiment
+from common.lib.servers.abstractservers.script_scanner.scan_methods import experiment
 from barium.lib.scripts.pulse_sequences.OpticalPumping133 import optical_pumping_133 as main_sequence
 
 from config.FrequencyControl_config import FrequencyControl_config
@@ -109,7 +109,7 @@ class optical_pumping(experiment):
                 pmt_counts = self.pulser.get_readout_counts()
                 dc_counts = pmt_counts[::2]
                 counts = pmt_counts[1::2]
-                print(len(dc_counts), len(counts))
+                print len(dc_counts), len(counts)
 
                 self.disc = self.pv.get_parameter('StateReadout','state_readout_threshold')
                 # 1 state is bright for standard state detection
@@ -145,7 +145,7 @@ class optical_pumping(experiment):
     def set_up_datavault(self):
         # set up folder
         date = datetime.datetime.now()
-        year  = date.year
+        year  = `date.year`
         month = '%02d' % date.month  # Padded with a zero if one digit
         day   = '%02d' % date.day    # Padded with a zero if one digit
         trunk = year + '_' + month + '_' + day
@@ -179,11 +179,11 @@ class optical_pumping(experiment):
         for i in range(5):
             self.pb.protection_off()
             time.sleep(.3)
-            print("trying to remove " + str(i))
-            print(self.pb.get_protection_state())
+            print "trying to remove " + str(i)
+            print self.pb.get_protection_state()
             if not self.pb.get_protection_state():
                 return True
-        print('failed to remove protection beam')
+        print 'failed to remove protection beam'
         return False
 
     def finalize(self, cxn, context):
