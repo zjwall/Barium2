@@ -43,7 +43,6 @@ See "launchable-server.ini" for a description of how to have a server appear in
 the node. See labrad-servers/Qubit Server/ for an example of a java server.
 
 Another option is to have this configuration in the file itself, set off by
-### BEGIN NODE INFO and ### END NODE INFO. See servers/gpibMockDeviceServer.py
 in this repository for an example.
 
 ***N.B.*** The name given in the server's [info] section MUST MATCH the name
@@ -334,8 +333,8 @@ class ServerProcess(ProcessProtocol):
     def outReceived(self, data):
         """Called when the server prints to stdout."""
         self.output.append((datetime.now(), data))
-        self.output = self.output[-LOG_LENGTH:]
-        self.logger.info(data.strip())
+        self.output = self.output[-LOG_LENGTH:]        
+        self.logger.info(data.strip().decode())
 
     def errReceived(self, data):
         """Called when the server prints to stderr."""
@@ -644,7 +643,7 @@ class NodeServer(LabradServer):
                         config = server_config.from_string(conf, f, path)
                         versions = configs.setdefault(config.name, {})
                         versions.setdefault(config.version, []).append(config)
-                    except Exception:
+                    except Exception as e:
                         fname = os.path.join(path, f)
                         logging.error('Error while loading config file "%s":' % fname,
                                   exc_info=True)

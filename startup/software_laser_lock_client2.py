@@ -47,7 +47,7 @@ class software_laser_lock_client2(QWidget):
         self.wm = yield self.wm_cxn.multiplexerserver
         self.cxn = yield connectAsync('localhost', name = socket.gethostname() + ' Single Channel Lock', password=self.password)
         self.lock_server = yield self.cxn.software_laser_lock_server2
-        self.piezo = yield self.cxn.piezo_controller2
+        #self.piezo = yield self.cxn.piezo_controller2
 
         self.registry =  self.cxn.registry
         
@@ -58,7 +58,6 @@ class software_laser_lock_client2(QWidget):
         lasers_to_lock = yield self.registry.get('lasers')
         for chan in lasers_to_lock:
             self.lasers[chan] = yield self.registry.get(chan)
-            print(str(chan) + str(self.lasers[chan]))
             
         
         self.initializeGUI()
@@ -73,6 +72,7 @@ class software_laser_lock_client2(QWidget):
         layout.addWidget(qBox, 0, 0)#, returnValue
         
         for chan in self.lasers:
+            print(chan)
             laser = software_laser_lock_channel(chan)
             from common.lib.clients.qtui import RGBconverter as RGB
             RGB = RGB.RGBconverter()

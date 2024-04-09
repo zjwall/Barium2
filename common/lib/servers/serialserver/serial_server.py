@@ -73,7 +73,7 @@ class SerialServer(LabradServer):
                 self.SerialPorts += [name]
                 print(name)
         if not len(self.SerialPorts):
-            print('  none')
+            print('none')
 
     def expireContext(self, c):
         if 'PortObject' in c:
@@ -150,10 +150,10 @@ class SerialServer(LabradServer):
         """Sets the baudrate."""
         ser = self.getPort(c)
         if data is None:
-            return float(ser.baudrate)
+            return int(ser.baudrate)
         else:
             ser.baudrate = data
-            return float(ser.baudrate)
+            return int(ser.baudrate)
 
     @setting(21, 'Bytesize',
                  data=[': List bytesizes',
@@ -231,7 +231,7 @@ class SerialServer(LabradServer):
     @setting(40, 'Write',
                  data=['s: Data to send',
                        '*w: Byte-data to send'],
-                 returns=['w: Bytes sent'])
+                 returns=['v: Bytes sent'])
     def write(self, c, data):
         """Sends data over the port."""
         ser = self.getPort(c)
@@ -319,18 +319,18 @@ class SerialServer(LabradServer):
         timeout = c['Timeout']
 
         if data:
-            delim, skip = data, ''
+            delim, skip = data, b''
 
         else:
-            delim, skip = '\n', '\r'
+            delim, skip = b'\n', b'\r'
 
-        recd = ''
+        recd = b''
         while True:
             r = ser.read(1)
-            if r == '' and timeout > 0:
+            if r == b'' and timeout > 0:
                 # only try a deferred read if there is a timeout
                 r = yield self.deferredRead(ser, timeout)
-            if r in ('', delim):
+            if r in (b'', delim):
                 break
             if r != skip:
                 recd += r

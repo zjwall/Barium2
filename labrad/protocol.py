@@ -226,7 +226,7 @@ class LabradProtocol(protocol.Protocol):
         """Finish a request."""
         del self.requests[n]
         self.pool.add(n) # reuse request numbers
-        return result
+        return result                                                
 
     # receiving
     def dataReceived(self, data):
